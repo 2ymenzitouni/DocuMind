@@ -1,20 +1,42 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import axios from "axios";
 
-function Interface() {
-  const [message, setMessage] = useState("");
+function App() {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
 
-  useEffect(() => {
-    fetch("http://127.0.0.1:8000/api/message")
-      .then((res) => res.json())
-      .then((data) => setMessage(data.message));
-  }, []);
+  const saveUser = async () => {
+    await axios.post("http://localhost:8000/users", {
+      name,
+      email,
+    });
+
+    alert("User saved!");
+  };
 
   return (
     <div>
-      <h1>React + FastAPI</h1>
-      <p>{message}</p>
+      <h1>Create User</h1>
+
+      <input
+        placeholder="Name"
+        onChange={(e) => setName(e.target.value)}
+      />
+
+      <br />
+
+      <input
+        placeholder="Email"
+        onChange={(e) => setEmail(e.target.value)}
+      />
+
+      <br />
+
+      <button onClick={saveUser}>
+        Save
+      </button>
     </div>
   );
 }
 
-export default Interface;
+export default App;
