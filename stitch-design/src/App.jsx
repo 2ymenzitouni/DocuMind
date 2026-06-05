@@ -23,7 +23,7 @@ const ProtectedRoute = ({ children }) => {
 const PublicRoute = ({ children }) => {
   const { user } = useApp();
   if (!user) {
-    return <Navigate to="/home" replace />;
+    return <Navigate to="/" replace />;
   }
   return children;
 };
@@ -33,7 +33,7 @@ function App() {
     <Routes>
       {/* Public Pages */}
       <Route
-        path="/home"
+        path="/"
         element={
           <PublicRoute>
             <LandingPage />

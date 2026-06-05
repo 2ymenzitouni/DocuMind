@@ -1,11 +1,13 @@
 import { useState,useEffect } from 'react'
 import './App.css'
-import Interface from './Pages/Interface';
+import Signup from './Pages/Signup';
+import Login from './Pages/Login';
 
 function App() {
 
   return (
-    <Interface/>
+    <Signup/>
+    // <Login/>
   );
 
 }
