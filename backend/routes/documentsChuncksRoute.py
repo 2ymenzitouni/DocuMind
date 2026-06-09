@@ -8,7 +8,7 @@ from uuid import UUID
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 from db.database import SessionLocal
-from models import DocumentModel, DocumentChunkModel
+from models import DocumentModel, DocumentChunksModel  # Import your DocumentChunk model for database operations
 
 # Assuming your extraction script functions are saved inside utils/document_parser.py
 from utils.document_parser import extract_document_text
@@ -86,7 +86,7 @@ async def upload_document(
         
         # Iteratively bulk-insert rows into your document_chunks schema layout table
         for idx, text_segment in enumerate(text_chunks):
-            chunk_row = DocumentChunkModel.DocumentChunk(
+            chunk_row = DocumentChunksModel.DocumentChunk(
                 id=uuid.uuid4(),
                 document_id=file_id,
                 content=text_segment,

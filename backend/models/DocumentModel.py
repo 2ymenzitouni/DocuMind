@@ -19,7 +19,6 @@ class Document(Base):
         index=True
     )
 
-    # 2. FIX: Changed from UUID to Integer to perfectly match your untouched User model id type
     user_id = Column(
         Integer,
         ForeignKey("users.id"),
@@ -31,9 +30,20 @@ class Document(Base):
     file_type = Column(String, nullable=True)
     status = Column(String, default="pending")
 
-    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    created_at = Column(
+        DateTime,
+        default=datetime.utcnow,
+        nullable=False
+    )
 
-    # Relationship to User model
-# Change this line in your Document class:
-user = relationship("User", backref="documents")
-chunks = relationship("DocumentChunk", back_populates="document", cascade="all, delete-orphan")
+    # MUST BE INSIDE THE CLASS
+    user = relationship(
+        "User",
+        backref="documents"
+    )
+
+    chunks = relationship(
+        "DocumentChunk",
+        back_populates="document",
+        cascade="all, delete-orphan"
+    )

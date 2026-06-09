@@ -1,0 +1,16 @@
+pip install langchain-ollama
+pip install langchain langchain-core langchain-community
+pip install pgvector
+pip install psycopg2-binary sqlalchemy
+pip install uvicorn
+pip install fastapi
+pip install "pydantic[email]"
+pip install email-validator
+pip install "passlib[bcrypt]"
+pip install langchain-text-splitters
+pip install pypdf
+pip install pdf2image
+pip install pytesseract
+pip install python-docx
+pip install python-multipart
+pip install langchain langchain-community langchain-core
