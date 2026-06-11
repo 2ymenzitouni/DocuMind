@@ -117,9 +117,9 @@ export const AppProvider = ({ children }) => {
   };
 
   // ----------------------------------------------------------------
-  // SEND MESSAGE
+  // ONE UNIFIED SEND MESSAGE PIPELINE (Direct /chat routing)
   // ----------------------------------------------------------------
-  const sendMessage = async (text, attachment = null) => {
+  const sendMessage = async (text, chatId, attachment = null) => {
     const timestamp = new Date().toLocaleTimeString('en-US', {
       hour: '2-digit',
       minute: '2-digit'
@@ -133,22 +133,28 @@ export const AppProvider = ({ children }) => {
       timestamp
     };
 
+    // Injection instantanée de la bulle utilisateur sur le flux UI
     setMessages(prev => [...prev, userMessage]);
     setIsTyping(true);
 
     try {
+      const token = localStorage.getItem("token");
+
+      // Requête directe vers l'endpoint unique consolidé
       const response = await fetch("http://localhost:8000/chat", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}` // Protection Bearer injectée pour FastAPI
         },
         body: JSON.stringify({
+          chat_id: chatId || "default-session", // Passe l'UUID issu des URL dynamiques
           question: text
         })
       });
 
       if (!response.ok) {
-        throw new Error("Backend error");
+        throw new Error("Backend error during pipeline inference processing");
       }
 
       const data = await response.json();
@@ -166,18 +172,18 @@ export const AppProvider = ({ children }) => {
       setMessages(prev => [...prev, aiMessage]);
 
     } catch (error) {
-      const aiMessage = {
+      const aiErrorMessage = {
         id: (Date.now() + 1).toString(),
         sender: "ai",
-        text: "Erreur de connexion avec le serveur.",
+        text: "Désolé, impossible de joindre l'intelligence artificielle pour le moment.",
         timestamp: new Date().toLocaleTimeString('en-US', {
           hour: '2-digit',
           minute: '2-digit'
         })
       };
 
-      setMessages(prev => [...prev, aiMessage]);
-      console.error(error);
+      setMessages(prev => [...prev, aiErrorMessage]);
+      console.error("Communication failure inside unified pipeline call:", error);
     } finally {
       setIsTyping(false);
     }

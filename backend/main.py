@@ -26,6 +26,7 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"], # <-- This MUST be wildcard or include "Authorization"
+    
 )
 
 app.include_router(userRoute)
