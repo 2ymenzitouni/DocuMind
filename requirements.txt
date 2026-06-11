@@ -13,4 +13,7 @@ pip install pdf2image
 pip install pytesseract
 pip install python-docx
 pip install python-multipart
-pip install langchain langchain-community langchain-core
+pip install langchain langchain-community langchain-core sentence-transformers
+#---------------------------------------------------
+ollama pull nomic-embed-text
+pip install langchain-ollama

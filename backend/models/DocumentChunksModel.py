@@ -2,6 +2,7 @@ import uuid
 from sqlalchemy import Column, String, Integer, Text, ForeignKey, JSON, DateTime, func
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
+from pgvector.sqlalchemy import Vector
 
 from db.database import Base
 
@@ -23,7 +24,7 @@ class DocumentChunk(Base):
 
     content = Column(Text, nullable=True)
 
-    embedding = Column(Text, nullable=True)
+    embedding = Column(Vector(768))
 
     chunk_index = Column(Integer, nullable=True)
 

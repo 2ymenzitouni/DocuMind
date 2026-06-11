@@ -11,6 +11,8 @@ from models import  DocumentChunksModel
 from routes.userRoute import router as userRoute
 from routes.documentRoute import router as documentRoute
 
+from routes.chatRoute import router as chatRoute
+
 Usermodel.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
@@ -25,3 +27,4 @@ app.add_middleware(
 
 app.include_router(userRoute)
 app.include_router(documentRoute)
+app.include_router(chatRoute)
