@@ -1,115 +1,3 @@
-# import os
-# import uuid
-# from fastapi import APIRouter, UploadFile, File, Depends, HTTPException, status
-# from sqlalchemy.orm import Session
-# from uuid import UUID
-
-# from db.database import SessionLocal
-# from models import DocumentModel
-
-# router = APIRouter()
-
-# UPLOAD_DIR = "uploads"
-# os.makedirs(UPLOAD_DIR, exist_ok=True)
-
-
-# def get_db():
-#     db = SessionLocal()
-#     try:
-#         yield db
-#     finally:
-#         db.close()
-
-
-# # -----------------------
-# # UPLOAD DOCUMENT (REAL FILE)
-# # -----------------------
-# @router.post("/documents")
-# async def upload_document(
-#     file: UploadFile = File(...),
-#     db: Session = Depends(get_db)
-# ):
-#     # 1. Create file identifier and compute local paths
-#     file_id = uuid.uuid4()
-#     file_extension = file.filename.split(".")[-1] if "." in file.filename else "txt"
-#     saved_filename = f"{file_id}.{file_extension}"
-#     file_path = os.path.join(UPLOAD_DIR, saved_filename)
-
-#     # 2. Save incoming stream to disk storage
-#     with open(file_path, "wb") as buffer:
-#         buffer.write(await file.read())
-
-#     # 3. Save entry to database
-#     # FIX: Replaced MOCK_USER_ID UUID object with Integer 1 to match your User model primary key
-#     MOCK_USER_ID = 1
-
-#     new_doc = DocumentModel.Document(
-#         id=file_id,
-#         user_id=MOCK_USER_ID, 
-#         filename=file.filename,
-#         file_url=file_path,
-#         file_type=file_extension,
-#         status="Completed"  # Switched from Processing to Completed for testing direct preview
-#     )
-
-#     db.add(new_doc)
-#     db.commit()
-#     db.refresh(new_doc)
-
-#     # Return structured dict format mapping exactly to React expectations
-#     return {
-#         "id": str(new_doc.id),
-#         "name": new_doc.filename,
-#         "date": new_doc.created_at.strftime("%Y-%m-%d"),
-#         "size": os.path.getsize(file_path),
-#         "status": new_doc.status
-#     }
-
-
-# # -----------------------
-# # GET DOCUMENTS
-# # -----------------------
-# @router.get("/documents")
-# def get_documents(db: Session = Depends(get_db)):
-#     docs = db.query(DocumentModel.Document).all()
-
-#     return [
-#         {
-#             "id": str(d.id),
-#             "name": d.filename,
-#             "date": d.created_at.strftime("%Y-%m-%d"),
-#             "size": os.path.getsize(d.file_url) if d.file_url and os.path.exists(d.file_url) else 0,
-#             "status": d.status
-#         }
-#         for d in docs
-#     ]
-
-
-# # -----------------------
-# # DELETE DOCUMENT
-# # -----------------------
-# @router.delete("/documents/{doc_id}")
-# def delete_document(doc_id: UUID, db: Session = Depends(get_db)):
-#     doc = db.query(DocumentModel.Document).filter(DocumentModel.Document.id == doc_id).first()
-
-#     if not doc:
-#         raise HTTPException(
-#             status_code=status.HTTP_404_NOT_FOUND, 
-#             detail="Document not found"
-#         )
-
-#     # Clean up file on disk
-#     if doc.file_url and os.path.exists(doc.file_url):
-#         os.remove(doc.file_url)
-
-#     # Clean up database entry
-#     db.delete(doc)
-#     db.commit()
-
-#     return {"message": "Deleted successfully", "id": str(doc_id)}
-
-#---------------------------------------------
-
 import os
 import uuid
 
@@ -126,6 +14,8 @@ from sqlalchemy.orm import Session
 from uuid import UUID
 
 from langchain_text_splitters import RecursiveCharacterTextSplitter
+# Importation du moteur d'embeddings Ollama de LangChain
+from langchain_ollama import OllamaEmbeddings
 
 from db.database import SessionLocal
 
@@ -196,7 +86,6 @@ async def upload_document(
             file_path
         )
     except Exception as e:
-
         if os.path.exists(file_path):
             os.remove(file_path)
 
@@ -215,8 +104,19 @@ async def upload_document(
         extracted_text
     )
 
+    # Initialisation du modèle d'embeddings local (ex: nomic-embed-text ou llama3)
+    # Assure-toi que le modèle est bien téléchargé localement via `ollama run <nom_modele>`
     try:
+        embeddings_engine = OllamaEmbeddings(model="nomic-embed-text")
+    except Exception as e:
+        if os.path.exists(file_path):
+            os.remove(file_path)
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to initialize Embedding engine: {str(e)}"
+        )
 
+    try:
         # Your users table uses Integer id
         MOCK_USER_ID = 1
 
@@ -231,15 +131,23 @@ async def upload_document(
 
         db.add(document)
 
-        # Save chunks
+        # Save chunks with actual vectors
         for index, chunk_text in enumerate(chunks):
+            
+            # Génération du vecteur (liste de floats) pour le chunk courant
+            try:
+                vector_array = embeddings_engine.embed_query(chunk_text)
+            except Exception as embed_error:
+                print(f"⚠️ Vector generation failed at chunk index {index}: {embed_error}")
+                # Optionnel : lever une exception ou mettre un fallback si Ollama ne répond pas
+                raise embed_error
 
             chunk = (
                 DocumentChunksModel.DocumentChunk(
                     id=uuid.uuid4(),
                     document_id=file_id,
                     content=chunk_text,
-                    embedding=None,
+                    embedding=vector_array,  # Le tableau de réels est maintenant injecté ici
                     chunk_index=index,
                     chunk_metadata={
                         "char_length": len(chunk_text)
@@ -253,7 +161,6 @@ async def upload_document(
         db.refresh(document)
 
     except Exception as e:
-
         db.rollback()
 
         if os.path.exists(file_path):
@@ -261,7 +168,7 @@ async def upload_document(
 
         raise HTTPException(
             status_code=500,
-            detail=f"Database error: {str(e)}"
+            detail=f"Database or Pipeline error: {str(e)}"
         )
 
     return {
