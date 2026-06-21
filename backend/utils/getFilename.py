@@ -1,48 +1,44 @@
 import sys
+import time
 from uuid import UUID
 from sqlalchemy.orm import Session
 from db.database import SessionLocal
 from models.DocumentModel import Document
 
-def get_filename_by_id(document_id_str: str) -> str:
+def get_filename_by_id(document_id_str: str, max_retries: int = 10, delay: float = 1.0) -> str:
     """
-    Récupère le nom d'un document en base de données à partir de son ID UUID.
+    Récupère le filename en base de données. Si le fichier vient d'être uploadé,
+    la fonction réessaie plusieurs fois pour laisser le temps au commit SQL de se faire.
     """
-    # 1. Validation et conversion de la chaîne en UUID natif
+    clean_id = document_id_str.strip()
+    if "." in clean_id:
+        clean_id = clean_id.split(".")[0]
+
+    if len(clean_id) != 36:
+        print(f"[ATTENTION] Identifiant mal forme ({len(clean_id)} caracteres au lieu de 36). Secours active.")
+        return clean_id
+
     try:
-        doc_uuid = UUID(document_id_str)
+        doc_uuid = UUID(clean_id)
     except ValueError:
-        return f"Erreur : '{document_id_str}' n'est pas un UUID valide."
+        print(f"[ATTENTION] Impossible de convertir '{clean_id}' en UUID. Secours active.")
+        return clean_id
 
-    # 2. Ouverture de la session de base de données
-    db: Session = SessionLocal()
-    
-    try:
-        # 3. Requête optimisée : on ne sélectionne QUE la colonne 'name'
-        # .scalar() renvoie directement la chaîne de caractères (ou None)
-        filename = db.query(Document.name).filter(Document.id == doc_uuid).scalar()
-        
-        if filename:
-            return filename
-        else:
-            return f"Aucun document trouvé pour l'ID : {document_id_str}"
+    # Boucle d'attente active pour la synchronisation post-upload
+    for attempt in range(1, max_retries + 1):
+        db: Session = SessionLocal()
+        try:
+            filename = db.query(Document.filename).filter(Document.id == doc_uuid).scalar()
+            if filename is not None:
+                return filename  
+                
+        except Exception as e:
+            print(f"Erreur de lecture lors de la tentative {attempt}: {str(e)}")
+        finally:
+            db.close()
             
-    except Exception as e:
-        return f"Une erreur est survenue lors de la requête : {str(e)}"
+        time.sleep(delay)
         
-    finally:
-        # 4. Fermeture propre de la connexion
-        db.close()
-
-if __name__ == "__main__":
-    # Exemple d'utilisation : remplace par un ID existant dans ta base
-    test_id = "votre-id-uuid-ici-a1b2c3d4..."
-    
-    # Si tu veux passer l'ID directement en argument dans ton terminal : python get_document_name.py <UUID>
-    if len(sys.argv) > 1:
-        test_id = sys.argv[1]
-        
-    print(f"Recherche du fichier pour l'ID : {test_id}")
-    nom_du_fichier = get_filename_by_id(test_id)
-    print(f"Résultat : {nom_du_fichier}")
-print(get_filename_by_id("18a22df8-2659-4fca-8095-4b6b6a812541"))
+    # Nettoyage : Remplacement du symbole de la croix par [TIMEOUT] pour Windows
+    print(f"[TIMEOUT] Le document {clean_id} n'est pas encore visible en base.")
+    return clean_id

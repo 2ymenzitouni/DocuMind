@@ -117,6 +117,7 @@ from pypdf import PdfReader
 from pdf2image import convert_from_path
 import pytesseract
 from docx import Document
+from utils.getFilename import get_filename_by_id
 
 # Dictionnaire de correction des ligatures typographiques corrompues
 LIGATURES_MAP = {
@@ -232,15 +233,15 @@ def extract_document_text(file_path: str) -> str:
     Détecte l'extension du fichier reçu et applique la stratégie d'extraction adaptée.
     """
     extension = os.path.splitext(file_path)[1].lower()
-
+    filename = get_filename_by_id(os.path.basename(file_path)).split('.')[0]  # Récupère le nom du fichier sans l'extension
     if extension == ".pdf":
-        return file_path + " " + extract_pdf_text(file_path)
+        return filename + " " + extract_pdf_text(file_path)
 
     elif extension == ".docx":
-        return file_path + " " + extract_docx_text(file_path)
+        return filename + " " + extract_docx_text(file_path)
 
     elif extension == ".txt":
-        return file_path + " " + extract_txt_text(file_path)
+        return filename + " " + extract_txt_text(file_path)
 
     else:
         raise ValueError(f"Extension non supportée par le système : {extension}")
