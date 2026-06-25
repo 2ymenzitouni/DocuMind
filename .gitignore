@@ -1,2 +1,2 @@
-desktop.ini
-folderico-green.ico
+git rm --cached .desktop.ini
+git rm --cached folderico-green.ico
