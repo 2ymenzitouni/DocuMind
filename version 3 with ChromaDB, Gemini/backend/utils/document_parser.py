@@ -85,8 +85,8 @@ from google.genai import types  # Required for proper image byte wrapping
 # =====================================================================
 # Hardcoded credentials and targeting configurations
 GEMINI_API_KEY = "AQ.Ab8RN6LvzLNIjV5nlHSGph21NzFaO7EO9dowrv0UFl4TCDlFag"
-MODEL_NAME = "gemini-2.5-flash"
-PDF_PATH = r"C:\Users\aymen\Desktop\testing invoices\Invoice 1.pdf"
+MODEL_NAME = "gemini-3.1-flash-lite"
+# PDF_PATH = r"C:\Users\aymen\Desktop\testing invoices\Invoice 1.pdf"
 
 # Initialize the Gemini Client directly using your hardcoded key
 client = genai.Client(api_key=GEMINI_API_KEY)

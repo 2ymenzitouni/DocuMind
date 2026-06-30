@@ -123,7 +123,7 @@ FAISS_METADATA_FILE = "faiss_metadata.pkl"
 # CONFIGURATION (Hardcoded - No .env file needed)
 # =====================================================================
 GEMINI_API_KEY = "AQ.Ab8RN6LvzLNIjV5nlHSGph21NzFaO7EO9dowrv0UFl4TCDlFag"
-MODEL_NAME = "gemini-2.5-flash"
+MODEL_NAME = "gemini-3.1-flash-lite"
 
 # Initialize Gemini directly by passing the API key explicitly
 llm = ChatGoogleGenerativeAI(
