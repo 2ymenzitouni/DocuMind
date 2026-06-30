@@ -144,6 +144,7 @@ import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
 import DocumentsPage from './pages/DocumentsPage';
 import ChatPage from './pages/ChatPage';
+import ProfilePage from './pages/ProfilePage';
 
 // Protected Route wrapper - Users must be logged in
 const ProtectedRoute = ({ children }) => {
@@ -256,6 +257,14 @@ function App() {
         }
       />
 
+        <Route
+        path="/profile/:profileId"
+        element={
+          <ProtectedRoute>
+            <ProfilePage/>
+          </ProtectedRoute>
+        }
+      />
       {/* Global Redirect Fallback */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

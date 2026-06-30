@@ -1,9 +1,19 @@
 // import React from 'react';
-// import { NavLink } from 'react-router-dom';
+// import { NavLink, useNavigate } from 'react-router-dom';
 // import { useApp } from '../context/AppContext';
 
 // export default function SideNavBar({ visible, onClose }) {
 //   const { user, logout } = useApp();
+//   const navigate = useNavigate();
+
+//   const handleLogoutClick = () => {
+//     // 1. Fire context state cleanup
+//     logout();
+//     // 2. Shut mobile layout drawer overlay
+//     if (onClose) onClose();
+//     // 3. Boot user back to auth portal entry screen
+//     navigate('/login');
+//   };
 
 //   return (
 //     <>
@@ -16,8 +26,9 @@
 //       )}
 
 //       <aside
-//         className={`fixed left-0 top-0 h-full w-[280px] bg-surface-container-low border-r border-outline-variant flex flex-col py-md z-40 transition-transform duration-300 md:translate-x-0 ${visible ? 'translate-x-0' : '-translate-x-full md:flex'
-//           }`}
+//         className={`fixed left-0 top-0 h-full w-[280px] bg-surface-container-low border-r border-outline-variant flex flex-col py-md z-40 transition-transform duration-300 md:translate-x-0 ${
+//           visible ? 'translate-x-0' : '-translate-x-full md:flex'
+//         }`}
 //       >
 //         {/* Header */}
 //         <div className="px-lg mb-8 flex items-center gap-3">
@@ -36,9 +47,10 @@
 //             to="/dashboard"
 //             onClick={onClose}
 //             className={({ isActive }) =>
-//               `flex items-center gap-3 rounded-lg mx-2 px-4 py-3 transition-all ${isActive
-//                 ? 'bg-primary-container text-on-primary-container font-semibold scale-95'
-//                 : 'text-on-surface-variant hover:bg-surface-container-high hover:text-primary'
+//               `flex items-center gap-3 rounded-lg mx-2 px-4 py-3 transition-all ${
+//                 isActive
+//                   ? 'bg-primary-container text-on-primary-container font-semibold scale-95'
+//                   : 'text-on-surface-variant hover:bg-surface-container-high hover:text-primary'
 //               }`
 //             }
 //           >
@@ -50,9 +62,10 @@
 //             to="/documents"
 //             onClick={onClose}
 //             className={({ isActive }) =>
-//               `flex items-center gap-3 rounded-lg mx-2 px-4 py-3 transition-all ${isActive
-//                 ? 'bg-primary-container text-on-primary-container font-semibold scale-95'
-//                 : 'text-on-surface-variant hover:bg-surface-container-high hover:text-primary'
+//               `flex items-center gap-3 rounded-lg mx-2 px-4 py-3 transition-all ${
+//                 isActive
+//                   ? 'bg-primary-container text-on-primary-container font-semibold scale-95'
+//                   : 'text-on-surface-variant hover:bg-surface-container-high hover:text-primary'
 //               }`
 //             }
 //           >
@@ -64,9 +77,10 @@
 //             to="/chat"
 //             onClick={onClose}
 //             className={({ isActive }) =>
-//               `flex items-center gap-3 rounded-lg mx-2 px-4 py-3 transition-all ${isActive
-//                 ? 'bg-primary-container text-on-primary-container font-semibold scale-95'
-//                 : 'text-on-surface-variant hover:bg-surface-container-high hover:text-primary'
+//               `flex items-center gap-3 rounded-lg mx-2 px-4 py-3 transition-all ${
+//                 isActive
+//                   ? 'bg-primary-container text-on-primary-container font-semibold scale-95'
+//                   : 'text-on-surface-variant hover:bg-surface-container-high hover:text-primary'
 //               }`
 //             }
 //           >
@@ -79,20 +93,20 @@
 //         <div className="mt-auto px-sm flex flex-col gap-1 font-label-md text-label-md border-t border-outline-variant pt-4 mx-4">
 //           <button
 //             onClick={() => alert('Settings popup simulation')}
-//             className="flex items-center w-full gap-3 text-on-surface-variant hover:bg-surface-container-high rounded-lg px-4 py-2 hover:bg-surface-container-highest transition-colors text-left"
+//             className="flex items-center w-full gap-3 text-on-surface-variant hover:bg-surface-container-high rounded-lg px-4 py-2 transition-colors text-left"
 //           >
 //             <span className="material-symbols-outlined">settings</span>
 //             Settings
 //           </button>
 //           <button
 //             onClick={() => alert('Support chatbot popup simulation')}
-//             className="flex items-center w-full gap-3 text-on-surface-variant hover:bg-surface-container-high rounded-lg px-4 py-2 hover:bg-surface-container-highest transition-colors text-left"
+//             className="flex items-center w-full gap-3 text-on-surface-variant hover:bg-surface-container-high rounded-lg px-4 py-2 transition-colors text-left"
 //           >
 //             <span className="material-symbols-outlined">help</span>
 //             Support
 //           </button>
 //           <button
-//             onClick={logout}
+//             onClick={handleLogoutClick}
 //             className="flex items-center w-full gap-3 text-error hover:bg-error-container/20 rounded-lg px-4 py-2 transition-colors text-left mt-2"
 //           >
 //             <span className="material-symbols-outlined">logout</span>
@@ -104,7 +118,8 @@
 //   );
 // }
 
-// =====================================================
+
+// #################################################################
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
@@ -114,11 +129,8 @@ export default function SideNavBar({ visible, onClose }) {
   const navigate = useNavigate();
 
   const handleLogoutClick = () => {
-    // 1. Fire context state cleanup
     logout();
-    // 2. Shut mobile layout drawer overlay
     if (onClose) onClose();
-    // 3. Boot user back to auth portal entry screen
     navigate('/login');
   };
 
@@ -198,13 +210,23 @@ export default function SideNavBar({ visible, onClose }) {
 
         {/* Footer Navigation */}
         <div className="mt-auto px-sm flex flex-col gap-1 font-label-md text-label-md border-t border-outline-variant pt-4 mx-4">
-          <button
-            onClick={() => alert('Settings popup simulation')}
-            className="flex items-center w-full gap-3 text-on-surface-variant hover:bg-surface-container-high rounded-lg px-4 py-2 transition-colors text-left"
+          
+          {/* Nouveau lien Settings dynamique */}
+          <NavLink
+            to={`/profile/${user?.id || '123'}`}
+            onClick={onClose}
+            className={({ isActive }) =>
+              `flex items-center w-full gap-3 rounded-lg px-4 py-2 transition-colors text-left ${
+                isActive
+                  ? 'bg-primary-container text-on-primary-container font-semibold'
+                  : 'text-on-surface-variant hover:bg-surface-container-high'
+              }`
+            }
           >
             <span className="material-symbols-outlined">settings</span>
             Settings
-          </button>
+          </NavLink>
+
           <button
             onClick={() => alert('Support chatbot popup simulation')}
             className="flex items-center w-full gap-3 text-on-surface-variant hover:bg-surface-container-high rounded-lg px-4 py-2 transition-colors text-left"

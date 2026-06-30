@@ -48,7 +48,7 @@ export default function TopAppBar({ title, onMenuClick, onSearchChange, searchVa
           <span className="material-symbols-outlined">help</span>
         </button>
 
-        <div className="w-8 h-8 rounded-full bg-secondary-container ml-2 overflow-hidden border border-outline-variant flex items-center justify-center">
+        <div onClick={() => alert('Opening Profile')} className="w-8 h-8 cursor-pointer rounded-full bg-secondary-container ml-2 overflow-hidden border border-outline-variant flex items-center justify-center">
           <img
             alt="User Avatar"
             className="w-full h-full object-cover"
