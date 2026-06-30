@@ -15,6 +15,7 @@ from routes.userRoute import router as userRoute
 from routes.documentRoute import router as documentRoute
 from routes.chatRoute import router as chatRoute
 from routes.dashboardRoute import router as dashboardRoute  # <-- AJOUTE CECI
+from routes.viewpdfRoute import router as pdf_router # Assurez-vous d'importer votre routeur
 
 # This now safely creates ALL registered tables (users, documents, document_chunks, chats, messages)
 Base.metadata.create_all(bind=engine)
@@ -34,3 +35,4 @@ app.include_router(userRoute)
 app.include_router(documentRoute)
 app.include_router(chatRoute)
 app.include_router(dashboardRoute)
+app.include_router(pdf_router) 

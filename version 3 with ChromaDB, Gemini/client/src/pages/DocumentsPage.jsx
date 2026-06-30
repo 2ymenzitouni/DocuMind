@@ -4,7 +4,7 @@ import { useApp } from '../context/AppContext';
 import SideNavBar from '../components/SideNavBar';
 import TopAppBar from '../components/TopAppBar';
 
-const API_BASE_URL = 'http://localhost:8000'; 
+const API_BASE_URL = 'http://localhost:8000';
 
 export default function DocumentsPage() {
   const { documents, setDocuments, uploadDocument, deleteDocument } = useApp();
@@ -14,7 +14,7 @@ export default function DocumentsPage() {
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef(null);
 
-  // 1. Fetch documents on mount with Authentication Header
+  const [previewDoc, setPreviewDoc] = useState(null);
   useEffect(() => {
     fetchDocuments();
   }, []);
@@ -23,12 +23,9 @@ export default function DocumentsPage() {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.get(`${API_BASE_URL}/documents`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
+        headers: { 'Authorization': `Bearer ${token}` }
       });
-      
-      // Normalisation pour garantir la compatibilité name / filename
+
       const normalizedData = response.data.map(doc => ({
         ...doc,
         name: doc.name || doc.filename || "Unnamed Document"
@@ -40,25 +37,19 @@ export default function DocumentsPage() {
     }
   };
 
-  // Filter documents based on search string
   const filteredDocs = documents.filter((doc) => {
     const docName = doc.name || doc.filename || "";
     return docName.toLowerCase().includes(searchQuery.toLowerCase());
   });
 
-  // 2. File Upload Handler integrated with AppContext Pipeline
   const handleUpload = async (file) => {
     if (!file) return;
-
     if (file.size > 50 * 1024 * 1024) {
       alert("File is too large. Maximum allowed size is 50MB.");
       return;
     }
-
     setIsUploading(true);
-
     try {
-      // Utilisation de la fonction centralisée du contexte (gère le token et FormData)
       await uploadDocument(file);
     } catch (error) {
       console.error("Error uploading file:", error);
@@ -70,39 +61,23 @@ export default function DocumentsPage() {
 
   const handleFileChange = (e) => {
     const files = e.target.files;
-    if (files && files.length > 0) {
-      handleUpload(files[0]);
-    }
+    if (files && files.length > 0) handleUpload(files[0]);
   };
 
-  const handleDragOver = (e) => {
-    e.preventDefault();
-    setDragOver(true);
-  };
-
-  const handleDragLeave = () => {
-    setDragOver(false);
-  };
-
+  const handleDragOver = (e) => { e.preventDefault(); setDragOver(true); };
+  const handleDragLeave = () => { setDragOver(false); };
   const handleDrop = (e) => {
     e.preventDefault();
     setDragOver(false);
     const files = e.dataTransfer.files;
-    if (files && files.length > 0) {
-      handleUpload(files[0]);
-    }
+    if (files && files.length > 0) handleUpload(files[0]);
   };
 
-  const triggerFileInput = () => {
-    fileInputRef.current.click();
-  };
+  const triggerFileInput = () => { fileInputRef.current.click(); };
 
-  // 3. Delete Document Handler integrated with AppContext Pipeline
   const handleDeleteDocument = async (id) => {
     if (!window.confirm("Are you sure you want to delete this document?")) return;
-
     try {
-      // Utilisation de la fonction du contexte (efface l'état local + Chroma/FAISS)
       await deleteDocument(id);
     } catch (error) {
       console.error("Error deleting document:", error);
@@ -129,9 +104,7 @@ export default function DocumentsPage() {
       alert(`"${docName}" failed to upload. There is no summary available.`);
       return;
     }
-    alert(
-      `Document Summary for: ${docName}\n\nThis document covers operating guidelines, business goals, and strategic insights. You can query its details directly on the AI Chat panel.`
-    );
+    alert(`Document Summary for: ${docName}\n\nThis document covers operating guidelines, business goals, and strategic insights. You can query its details directly on the AI Chat panel.`);
   };
 
   return (
@@ -158,34 +131,18 @@ export default function DocumentsPage() {
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
               onDrop={handleDrop}
-              className={`border-2 border-dashed rounded-2xl p-xl text-center transition-all cursor-pointer group ${
-                dragOver
-                  ? 'border-primary bg-primary-container/10'
-                  : 'border-outline-variant bg-surface-container-lowest hover:border-primary'
-              } ${isUploading ? 'opacity-60 pointer-events-none' : ''}`}
+              className={`border-2 border-dashed rounded-2xl p-xl text-center transition-all cursor-pointer group ${dragOver ? 'border-primary bg-primary-container/10' : 'border-outline-variant bg-surface-container-lowest hover:border-primary'
+                } ${isUploading ? 'opacity-60 pointer-events-none' : ''}`}
             >
-              <input
-                type="file"
-                ref={fileInputRef}
-                onChange={handleFileChange}
-                className="hidden"
-                accept=".pdf,.docx,.txt"
-              />
-
+              <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept=".pdf,.docx,.txt" />
               <div className="w-16 h-16 rounded-full bg-surface-container mx-auto flex items-center justify-center mb-md group-hover:bg-primary-container group-hover:text-on-primary-container transition-colors">
                 <span className={`material-symbols-outlined text-3xl text-primary group-hover:text-on-primary-container ${isUploading ? 'animate-bounce' : ''}`}>
                   {isUploading ? 'sync' : 'cloud_upload'}
                 </span>
               </div>
-              <p className="font-headline-md text-headline-md text-on-surface mb-xs">
-                {isUploading ? 'Uploading file...' : 'Drag and drop files here'}
-              </p>
+              <p className="font-headline-md text-headline-md text-on-surface mb-xs">{isUploading ? 'Uploading file...' : 'Drag and drop files here'}</p>
               <p className="font-body-sm text-body-sm text-on-surface-variant mb-md">Supports PDF, DOCX, TXT up to 50MB</p>
-              <button
-                type="button"
-                disabled={isUploading}
-                className="bg-primary hover:bg-primary/90 text-on-primary font-label-md text-label-md py-2 px-6 rounded-lg transition-colors cursor-pointer disabled:bg-gray-400"
-              >
+              <button type="button" disabled={isUploading} className="bg-primary hover:bg-primary/90 text-on-primary font-label-md text-label-md py-2 px-6 rounded-lg transition-colors cursor-pointer disabled:bg-gray-400">
                 {isUploading ? 'Please Wait...' : 'Upload Document'}
               </button>
             </div>
@@ -193,11 +150,7 @@ export default function DocumentsPage() {
             <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant overflow-hidden">
               <div className="p-md border-b border-outline-variant flex justify-between items-center bg-surface-container-low">
                 <h4 className="font-headline-md text-headline-md text-on-surface text-lg">Recent Documents</h4>
-                <button
-                  onClick={() => setSearchQuery('')}
-                  className="p-2 text-on-surface-variant hover:bg-surface-variant rounded-md transition-colors cursor-pointer"
-                  title="Clear Filter"
-                >
+                <button onClick={() => setSearchQuery('')} className="p-2 text-on-surface-variant hover:bg-surface-variant rounded-md transition-colors cursor-pointer" title="Clear Filter">
                   <span className="material-symbols-outlined text-sm">filter_list</span>
                 </button>
               </div>
@@ -216,9 +169,7 @@ export default function DocumentsPage() {
                   <tbody className="divide-y divide-outline-variant font-body-sm text-body-sm">
                     {filteredDocs.length === 0 ? (
                       <tr>
-                        <td colSpan="5" className="p-8 text-center text-on-surface-variant">
-                          No matching documents found in your library.
-                        </td>
+                        <td colSpan="5" className="p-8 text-center text-on-surface-variant">No matching documents found.</td>
                       </tr>
                     ) : (
                       filteredDocs.map((doc) => (
@@ -230,26 +181,52 @@ export default function DocumentsPage() {
                           <td className="p-4 text-on-surface-variant">{doc.date || "N/A"}</td>
                           <td className="p-4 text-on-surface-variant">{formatBytes(doc.size)}</td>
                           <td className="p-4">
-                            <span
-                              className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${
-                                doc.status === 'Completed'
-                                  ? 'bg-surface-variant text-primary'
-                                  : doc.status === 'Failed'
-                                  ? 'bg-error-container text-on-error-container'
-                                  : 'bg-surface-container-high text-on-surface-variant animate-pulse'
-                              }`}
-                            >
+                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${doc.status === 'Completed' ? 'bg-surface-variant text-primary' : 'bg-surface-container-high text-on-surface-variant'}`}>
                               {doc.status}
                             </span>
                           </td>
-                          <td className="p-4 text-right space-x-2">
+                          {/* <td className="p-4 text-right space-x-2">
                             <button
                               onClick={() => handleViewSummary(doc)}
+                              onMouseEnter={() => console.log("ID du document :", doc.id)}
                               className="text-on-surface-variant hover:text-primary transition-colors cursor-pointer"
                               title="View summary"
                             >
                               <span className="material-symbols-outlined text-sm">visibility</span>
                             </button>
+                            <button
+                              onClick={() => handleDeleteDocument(doc.id)}
+                              className="text-on-surface-variant hover:text-error transition-colors cursor-pointer"
+                              title="Delete file"
+                            >
+                              <span className="material-symbols-outlined text-sm">delete</span>
+                            </button>
+                          </td> */}
+                          <td className="p-4 text-right space-x-2 relative">
+                            <button
+                              onMouseEnter={() => {
+                                console.log("ID du document :", doc.id);
+                                setPreviewDoc(doc);
+                              }}
+                              onMouseLeave={() => setPreviewDoc(null)}
+                              className="text-on-surface-variant hover:text-primary transition-colors cursor-pointer"
+                              title="Preview PDF"
+                            >
+                              <span className="material-symbols-outlined text-sm">visibility</span>
+                            </button>
+
+                            {previewDoc?.id === doc.id && (
+                              <div
+                                className="fixed z-[100] right-[150px] top-[100px] w-96 h-auto max-h-[500px] bg-white shadow-2xl border border-outline-variant rounded-lg overflow-hidden"
+                              >
+                                <iframe
+                                  src={`${API_BASE_URL}/documents/${doc.id}/view#toolbar=0`}
+                                  className="w-full h-[450px]"
+                                  title="PDF Preview"
+                                />
+                              </div>
+                            )}
+
                             <button
                               onClick={() => handleDeleteDocument(doc.id)}
                               className="text-on-surface-variant hover:text-error transition-colors cursor-pointer"
