@@ -259,7 +259,9 @@
 //         documents,
 //         setDocuments,
 //         messages,
+//         setMessages, // Now fully exposed to clear history on user demand
 //         isTyping,
+//         setIsTyping,
 //         isLoading,
 //         login,
 //         register,
@@ -277,8 +279,11 @@
 // export const useApp = () => useContext(AppContext);
 
 
-// ############################################################
 
+
+
+
+// ########################################################################
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 const AppContext = createContext();
@@ -346,18 +351,27 @@ export const AppProvider = ({ children }) => {
 
         if (response.ok) {
           const data = await response.json();
+          console.log("Session recovery backend payload check:", data);
+
+          // Support standard nested data.user structure OR a flat user dictionary directly from FastAPI
           if (data && data.user) {
-            setUser(data.user); // Hydrate user context globally
-            await fetchUserDocuments(token); // Fetch documents in background
+            setUser(data.user);
+            await fetchUserDocuments(token);
+          } else if (data && (data.id || data.email)) {
+            setUser(data); 
+            await fetchUserDocuments(token);
           } else {
+            console.error("Session match failed: Backend data payload structural mismatch.", data);
             localStorage.removeItem("token");
           }
         } else {
-          console.warn("Session token invalid or expired. Clearing storage keys.");
+          const errorText = await response.text();
+          console.error(`Session validation failed on backend side (Status ${response.status}):`, errorText);
           localStorage.removeItem("token");
         }
       } catch (error) {
-        console.error("Network failure during session recovery lookup:", error);
+        console.error("Network failure during session recovery loop setup:", error);
+        // CRITICAL: Do NOT drop the local token asset if this is simply a server timeout/offline crash
       } finally {
         setIsLoading(false);
       }
@@ -380,11 +394,11 @@ export const AppProvider = ({ children }) => {
       
       const data = await response.json();
       localStorage.setItem("token", data.access_token);
-      setUser(data.user);
       
-      // Load user assets immediately post authentication
+      const profile = data.user ? data.user : data;
+      setUser(profile);
+      
       await fetchUserDocuments(data.access_token);
-      
       return data;
     } catch (error) {
       console.error("Login error:", error);
@@ -540,9 +554,9 @@ export const AppProvider = ({ children }) => {
         documents,
         setDocuments,
         messages,
-        setMessages, // Now fully exposed to clear history on user demand
+        setMessages, // Fully exposed to clear history on demand
         isTyping,
-        setIsTyping,
+        setIsTyping, // Fully exposed to interactively clear animations
         isLoading,
         login,
         register,
